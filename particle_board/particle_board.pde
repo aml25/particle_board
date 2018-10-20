@@ -11,10 +11,13 @@ void setup(){
   
   
   ks = new Keystone(this);
-  surface = ks.createCornerPinSurface(width,height,20);
+  
   offscreen = createGraphics(width,height);
   svg = offscreen.loadShape("outlines.svg");
   svg.disableStyle();
+  
+  
+  surface = ks.createCornerPinSurface(int((svg.width * offscreen.height) / svg.height),height,20);
 }
 
 void draw(){
