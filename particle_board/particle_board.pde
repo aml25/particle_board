@@ -1,64 +1,75 @@
 import deadpixel.keystone.*;
 
 
-Keystone ks;
-CornerPinSurface surface;
-PGraphics offscreen;
-PShape svg;
+Keystone ks; //master keystone object
+CornerPinSurface surface; //the canvas that gets mapped
+PGraphics offscreen; //the canvas for drawing onto
+PShape svg; //the edge detection vector to be mapped back onto the real world
+ArrayList<VectorShape> shapes = new ArrayList<VectorShape>();
+
+int prevMillis = 0; //used as an asynchronous timer
+int duration = 1000; //milliseconds to wait for another thing to do
+int shapeCounter = 0; //counts which shape we're at for scrolling through all shapes
 
 void setup(){
-  size(800,640, P3D);
+  size(800,640, P3D); //must be P3D for Keystone library to work
   
   
   ks = new Keystone(this);
-  surface = ks.createCornerPinSurface(width,height,20);
+  
   offscreen = createGraphics(width,height);
-  svg = offscreen.loadShape("outlines.svg");
+  svg = offscreen.loadShape("outlines.svg"); //load the svg into the drawing canvas
   svg.disableStyle();
+  
+  surface = ks.createCornerPinSurface(int((svg.width * offscreen.height) / svg.height),height,20);
+  
+  //create objects for each shape
+  for(int i=0;i<svg.getChildCount();i++){
+    if(svg.getChild(i).getChildCount() > 1){
+      for(int u=0;u<svg.getChild(i).getChildCount();u++){
+        
+        shapes.add(new VectorShape(svg.getChild(i).getChild(u)));
+      }  
+    }
+  }
+  
 }
 
 void draw(){
-  //println(svg.width);
   background(0);
   
+  if(millis() - prevMillis > duration){
+    prevMillis = millis();
+    shapeCounter++;
+    if(shapeCounter >= shapes.size()){
+      shapeCounter = 0;
+    }
+  }
   
-  PVector surfaceMouse = surface.getTransformedMouse();
+  PVector surfaceMouse = surface.getTransformedMouse(); //in case the mouse will be used
 
   // Draw the scene, offscreen
   offscreen.beginDraw();
   offscreen.background(0);
   
-
-  
+  //scale the svg so it fits in the window (look for a way to do this outside of the draw() function)
   float newWidth = (svg.width * offscreen.height) / svg.height;
-  //offscreen.shape(svg,0,0, newWidth, offscreen.height);
-  
-    offscreen.scale(newWidth/svg.width,offscreen.height/svg.height);
+  offscreen.scale(newWidth/svg.width,offscreen.height/svg.height); 
   
   
-  //shape(svg,mouseX,mouseY, newWidth, height);
+  //draw all the shapes as outlines
+  //offscreen.strokeWeight(0.5);
+  //offscreen.fill(0,0,0,0);
+  //for(int i=0;i<shapes.size();i++){
+  //  offscreen.stroke(255,255,255);
+  //  offscreen.shape(shapes.get(i).getPath(),0,0);
+  //}
   
-  for(int i=0;i<svg.getChildCount();i++){
-    //offscreen.shape(svg.getChild(i),0,0);
-    //println("child: " + i + ": " + svg.getChild(i).getChildCount());
-    if(svg.getChild(i).getChildCount() > 1){
-      for(int u=0;u<svg.getChild(i).getChildCount();u++){
-        if(u >= random(0,svg.getChild(i).getChildCount())){
-          PShape path = svg.getChild(i).getChild(u);
-         
-          
-          //offscreen.pushMatrix();
-          
-          //offscreen.translate(mouseX-(newWidth/2),mouseY-(offscreen.height/2));
-          offscreen.fill(random(0,255),random(0,255),random(0,255));
-          //translate(-path.getVertexX(0), - path.getVertexY(0));
-          offscreen.shape(path,0,0);
-          
-         // offscreen.popMatrix();
-        }
-      }  
-    }
-  }
+  
+  //only draw a filled shape for the one we're counting at
+  offscreen.stroke(0,0,0,0);
+  offscreen.fill(random(0,255),random(0,255),random(0,255));
+  offscreen.shape(shapes.get(shapeCounter).getPath(),0,0);
   
   offscreen.endDraw();
   
