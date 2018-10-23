@@ -23,7 +23,7 @@ void setup(){
   
   surface = ks.createCornerPinSurface(int((svg.width * offscreen.height) / svg.height),height,20);
   
-  //create objects for each shape
+  //create objects for each shape (PShape)
   for(int i=0;i<svg.getChildCount();i++){
     if(svg.getChild(i).getChildCount() > 1){
       for(int u=0;u<svg.getChild(i).getChildCount();u++){
@@ -44,6 +44,8 @@ void draw(){
     if(shapeCounter >= shapes.size()){
       shapeCounter = 0;
     }
+    
+    
   }
   
   PVector surfaceMouse = surface.getTransformedMouse(); //in case the mouse will be used
